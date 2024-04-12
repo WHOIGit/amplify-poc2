@@ -1,0 +1,81 @@
+version: '3'
+
+services:
+
+  upload:
+    build: ./upload/
+    env_file:
+      - .env
+      - upload/UPLOAD.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  dither-node:
+    build: ./node/
+    env_file:
+      - .env
+      - node/envs/dither.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+  dither-proc:
+    #build: ../endpoint_builds/containerized-image-processing/
+    image: harbor-registry.whoi.edu/amplify/imageproc:latest
+    
+#  bin2roi-node:
+#    build: ./node/
+#    env_file:
+#      - .env
+#      - node/envs/bin2roi.env
+#    depends_on:
+#      rabbitmq:
+#        condition: service_healthy
+#  bin2roi-proc:
+#    build: ../endpoint_builds/bin2roi/
+#    #image: harbor-registry.whoi.edu/amplify/bin2roi:latest
+
+  provenancedb:
+    build: ./provenance-db/
+    env_file:
+        - .env
+        - provenance-db/PROV.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      couchdb:
+        condition: service_healthy
+
+  couchdb:
+    image: couchdb:latest
+    volumes:
+      - couchdb-data:/opt/couchdb/data
+    ports: # expose GUI
+      - "5984:5984"
+    environment:
+      COUCHDB_USER: ${PROVENANCE_DB_USER}
+      COUCHDB_PASSWORD: ${PROVENANCE_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5984/"]
+      interval: 2s
+      timeout: 30s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${AMQP_USER}
+      RABBITMQ_DEFAULT_PASS: ${AMQP_PASSWORD}
+    ports: # expose management GUI
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 2s
+      timeout: 30s
+      retries: 10
+
+volumes:
+  couchdb-data:
+

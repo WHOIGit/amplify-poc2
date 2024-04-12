@@ -1,0 +1,6 @@
+fastapi
+aiobotocore
+uvicorn
+python-multipart
+git+https://github.com/WHOIGit/amplify-amqp-utils.git
+git+https://github.com/WHOIGit/amplify-storage-utils.git
