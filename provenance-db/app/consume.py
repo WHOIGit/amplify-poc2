@@ -1,12 +1,12 @@
 import os
 
 from provenance.capture import Logger, Subscriber
-from couch import CouchLogger
+from mongo import MongoLogger
 
-couch_logger = CouchLogger.from_environment()
+mongo_logger = MongoLogger.from_environment()
 stdout_logger = Logger.stdout()
 
-logger = Logger.fanout([couch_logger, stdout_logger])
+logger = Logger.fanout([mongo_logger, stdout_logger])
 
 AMQP_PARAMS = dict(
     host          = os.environ['AMQP_HOST'],

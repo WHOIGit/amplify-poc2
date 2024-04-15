@@ -45,23 +45,39 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
-      couchdb:
+      mongo:
         condition: service_healthy
 
-  couchdb:
-    image: couchdb:latest
+  mongo:
+    image: mongo:7.0-rc
+    restart: always
     volumes:
-      - couchdb-data:/opt/couchdb/data
-    ports: # expose GUI
-      - "5984:5984"
+      - dbvol:/data/db
+      #- ./mongo-init/:/docker-entrypoint-initdb.d/  # .sh and .js startup scripts, eg. for creating users (provenance vs app)
     environment:
-      COUCHDB_USER: ${PROVENANCE_DB_USER}
-      COUCHDB_PASSWORD: ${PROVENANCE_DB_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${PROVENANCE_DB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${PROVENANCE_DB_PASSWORD}
+      MONGO_INITDB_DATABASE: amplify
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5984/"]
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 2s
       timeout: 30s
       retries: 10
+
+  mongo-ui:
+    image: mongo-express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${PROVENANCE_DB_USER}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${PROVENANCE_DB_PASSWORD}
+      ME_CONFIG_MONGODB_URL: mongodb://${PROVENANCE_DB_USER}:${PROVENANCE_DB_PASSWORD}@mongodb:27017/
+      ME_CONFIG_BASICAUTH: false
+    depends_on:
+        - mongo
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -77,5 +93,5 @@ services:
       retries: 10
 
 volumes:
-  couchdb-data:
+  dbvol:
 

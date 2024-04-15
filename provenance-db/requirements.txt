@@ -1,2 +1,2 @@
-couchdb
+pymongo
 git+https://github.com/WHOIGit/provenance-capture.git
