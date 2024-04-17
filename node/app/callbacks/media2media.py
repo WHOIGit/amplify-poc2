@@ -25,10 +25,17 @@ AMQP_PUBLISH_ARGS = dict(
 S3_UPLOAD_BUCKET = os.environ['NODE_S3_BUCKET_UPLOAD']
 S3_UPLOAD_KEY_PREFIX = os.getenv('NODE_S3_UPLOAD_KEY_PREFIX','')
 
-
-
+FILTER_KEY = os.getenv('NODE_AMQP_SUBSCRIBE_FILTER_KEY')
+FILTER_VALUES = os.getenv('NODE_AMQP_SUBSCRIBE_FILTER_VALUES')
+FILTER_VALUES = FILTER_VALUES.split(',') if FILTER_VALUES else None
 
 async def callback(msg):
+    if FILTER_KEY and FILTER_KEY not in msg:
+        print(f'media2media: FILTER_KEY "{FILTER_KEY}" not in msg keys "{list(msg.keys())}"', flush=True)
+        return
+    elif FILTER_VALUES and msg[FILTER_KEY] not in FILTER_VALUES:
+        print(f'media2media: FILTER_VALUES "{FILTER_VALUES}" not in msg[{FILTER_KEY}]', flush=True)
+        return
 
     step_description = {
         'description': 'Dither an image using the Floyd-Steinberg algorithm.',
@@ -68,7 +75,7 @@ async def callback(msg):
         # push to amqp
         outgoing_msg = dict(bucket=S3_UPLOAD_BUCKET, key=output_key)
         await aio_publish(outgoing_msg, **AMQP_DEFAULTS, **AMQP_PUBLISH_ARGS)
-        step.add_output(name='processed-image', description=outgoing_msg)
+        step.add_output(name='media2media', description=outgoing_msg)
         
         
         

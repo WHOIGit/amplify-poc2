@@ -13,18 +13,30 @@ services:
       rabbitmq:
         condition: service_healthy
 
-  dither-node:
+  node-base:
     build: ./node/
     env_file:
       - .env
-      - node/envs/dither.env
     depends_on:
       rabbitmq:
         condition: service_healthy
+
+  dither-node:
+    extends: node-base
+    env_file:
+      - node/envs/dither.env
   dither-proc:
     #build: ../endpoint_builds/containerized-image-processing/
     image: harbor-registry.whoi.edu/amplify/imageproc:latest
-    
+
+  mlanal-node:
+    extends: node-base
+    env_file:
+      - node/envs/ml_anal.env
+  mlanal-proc:
+    #build: ../endpoint_builds/containerized-image-processing/
+    image: harbor-registry.whoi.edu/amplify/ml-analyzed:latest
+
 #  bin2roi-node:
 #    build: ./node/
 #    env_file:

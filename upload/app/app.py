@@ -45,7 +45,8 @@ async def upload_file(file: UploadFile = File(...)):
         message = {
             "type": "upload",
             "bucket": UPLOAD_BUCKET,
-            "key": storage_filename
+            "key": storage_filename,
+            "ext": os.path.splitext(file.filename)[1]
         }
 
         await aio_publish(message, **AMQP_PUBLISH_ARGS)
