@@ -3,9 +3,9 @@ Collection of dockerized apps for AMPLIfy PoC v2
 
 ## Overview
 Images:
-- Upload -
-- Provenance-db -
-- Node - 
+- Upload - Handles ingestion of new media. Saves it to S3 and emits an AMQP message which other images may be listening to
+- Provenance-db - handles logging of provenance messages specifically routed to it
+- Node - Multipurpse node that listens to AMQP messages, pulls data from S3, sends data to an API endpoint for processing, then emits a Provenance AMQP message + output AMQP message.
 
 
 ## Setup
