@@ -86,7 +86,7 @@ async def callback(msg):
                 raise ValueError(error_msg)
             
         # upload results to DB
-        produced_content = produced_content.decode('utf-8').replace("'", '"')
+        produced_content = produced_content.decode('utf-8')
         produced_content = json.loads(produced_content)
         db_insert_id = write_to_mongodb_from_env(produced_content)
         print(produced_content, flush=True)
